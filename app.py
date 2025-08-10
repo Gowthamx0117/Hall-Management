@@ -47,3 +47,10 @@ with app.app_context():
 
 # Import routes after app initialization
 from routes import *  # noqa: F401, F403
+
+# Make settings available in all templates
+@app.context_processor
+def inject_settings():
+    from models import Settings
+    settings = Settings.query.first()
+    return dict(settings=settings)

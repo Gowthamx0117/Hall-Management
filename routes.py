@@ -133,6 +133,7 @@ def delete_hall(hall_id):
 def book_hall(hall_id):
     """Book a specific hall"""
     hall = Hall.query.get_or_404(hall_id)
+    settings = Settings.query.first()
     
     if not hall.is_available:
         flash('This hall is currently not available for booking.', 'warning')
@@ -144,7 +145,7 @@ def book_hall(hall_id):
             # Check if booking date is in the future
             if form.booking_date.data and form.booking_date.data <= datetime.now():
                 flash('Booking date must be in the future.', 'danger')
-                return render_template('booking.html', hall=hall, form=form)
+                return render_template('booking.html', hall=hall, form=form, settings=settings)
             
             booking = Booking()
             booking.hall_id = hall.id
@@ -176,7 +177,7 @@ def book_hall(hall_id):
                     flash(f'{field}: {error}', 'danger')
     
     form = BookingForm()
-    return render_template('booking.html', hall=hall, form=form)
+    return render_template('booking.html', hall=hall, form=form, settings=settings)
 
 @app.route('/admin/booking/<int:booking_id>/cancel', methods=['POST'])
 def cancel_booking(booking_id):
