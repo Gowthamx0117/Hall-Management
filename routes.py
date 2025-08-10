@@ -177,7 +177,8 @@ def book_hall(hall_id):
                     flash(f'{field}: {error}', 'danger')
     
     form = BookingForm()
-    return render_template('booking.html', hall=hall, form=form, settings=settings)
+    from datetime import datetime
+    return render_template('booking.html', hall=hall, form=form, settings=settings, now=datetime.now())
 
 @app.route('/admin/booking/<int:booking_id>/cancel', methods=['POST'])
 def cancel_booking(booking_id):

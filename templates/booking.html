@@ -63,7 +63,7 @@
 
                     <div class="mb-3">
                         {{ form.booking_date.label(class="form-label") }}
-                        {{ form.booking_date(class="form-control", min=now.strftime('%Y-%m-%dT%H:%M')) }}
+                        {{ form.booking_date(class="form-control") }}
                         <div class="form-text">Select the date and time for your booking</div>
                     </div>
 
@@ -127,7 +127,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const now = new Date();
     now.setHours(now.getHours() + 2);
     const minDateTime = now.toISOString().slice(0, 16);
-    document.querySelector('input[type="datetime-local"]').setAttribute('min', minDateTime);
+    const dateInput = document.querySelector('input[type="datetime-local"]');
+    if (dateInput) {
+        dateInput.setAttribute('min', minDateTime);
+    }
     
     form.addEventListener('submit', function(e) {
         // Show loading state
