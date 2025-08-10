@@ -154,7 +154,10 @@ def book_hall(hall_id):
     if request.method == 'POST':
         form = BookingForm()
         if form.validate_on_submit():
-            # Check for booking conflicts
+            # Debug: Log the booking attempt
+            logging.info(f'Booking attempt: Hall {hall.id}, Date {form.booking_date.data}, Time {form.start_time.data}-{form.end_time.data}')
+            
+            # Check for booking conflicts using proper overlap logic
             conflict_query = db.session.query(Booking).filter(
                 Booking.hall_id == hall.id,
                 Booking.booking_date == form.booking_date.data,
@@ -165,8 +168,15 @@ def book_hall(hall_id):
             
             existing_booking = conflict_query.first()
             
+            # Debug: Log conflict check result
             if existing_booking:
-                flash('This hall is already booked at the selected date and time. Please choose another slot.', 'danger')
+                logging.info(f'Conflict found: Existing booking {existing_booking.id} from {existing_booking.start_time} to {existing_booking.end_time}')
+            else:
+                logging.info('No conflicts found')
+            
+            if existing_booking:
+                conflict_time = f"{existing_booking.start_time.strftime('%H:%M')} - {existing_booking.end_time.strftime('%H:%M')}"
+                flash(f'This hall is already booked from {conflict_time} by {existing_booking.student_name}. Please choose another time slot.', 'danger')
                 from datetime import date
                 return render_template('booking.html', hall=hall, form=form, settings=settings, today=date.today())
             
@@ -187,7 +197,9 @@ def book_hall(hall_id):
                 # Send email notification
                 send_booking_notification(booking)
                 
-                flash(f'Hall "{hall.name}" booked successfully for {form.booking_date.data} from {form.start_time.data.strftime("%H:%M")} to {form.end_time.data.strftime("%H:%M")}!', 'success')
+                start_time_str = form.start_time.data.strftime("%H:%M") if form.start_time.data else "N/A"
+                end_time_str = form.end_time.data.strftime("%H:%M") if form.end_time.data else "N/A"
+                flash(f'Hall "{hall.name}" booked successfully for {form.booking_date.data} from {start_time_str} to {end_time_str}!', 'success')
                 return redirect(url_for('index'))
             except Exception as e:
                 db.session.rollback()
