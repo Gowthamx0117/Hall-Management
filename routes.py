@@ -15,7 +15,23 @@ def index():
         return redirect(url_for('setup'))
     
     halls = Hall.query.all()
-    return render_template('dashboard.html', halls=halls, settings=settings)
+    # Get today's bookings for each hall
+    from datetime import date
+    today = date.today()
+    hall_bookings = {}
+    
+    for hall in halls:
+        today_bookings = Booking.query.filter(
+            Booking.hall_id == hall.id,
+            Booking.booking_date == today,
+            Booking.status == 'active'
+        ).order_by(Booking.start_time).all()
+        hall_bookings[hall.id] = today_bookings
+    
+    # Calculate total bookings for today
+    total_bookings = sum(len(bookings) for bookings in hall_bookings.values())
+    
+    return render_template('dashboard.html', halls=halls, settings=settings, hall_bookings=hall_bookings, today=today, total_bookings=total_bookings)
 
 @app.route('/setup', methods=['GET', 'POST'])
 def setup():
@@ -131,32 +147,37 @@ def delete_hall(hall_id):
 
 @app.route('/book/<int:hall_id>', methods=['GET', 'POST'])
 def book_hall(hall_id):
-    """Book a specific hall"""
+    """Book a specific hall with date and time conflict checking"""
     hall = Hall.query.get_or_404(hall_id)
     settings = Settings.query.first()
-    
-    if not hall.is_available:
-        flash('This hall is currently not available for booking.', 'warning')
-        return redirect(url_for('index'))
     
     if request.method == 'POST':
         form = BookingForm()
         if form.validate_on_submit():
-            # Check if booking date is in the future
-            from datetime import datetime as dt
-            if form.booking_date.data and form.booking_date.data <= dt.now():
-                flash('Booking date must be in the future.', 'danger')
-                return render_template('booking.html', hall=hall, form=form, settings=settings, now=dt.now())
+            # Check for booking conflicts
+            conflict_query = db.session.query(Booking).filter(
+                Booking.hall_id == hall.id,
+                Booking.booking_date == form.booking_date.data,
+                Booking.status == 'active',
+                Booking.start_time < form.end_time.data,
+                Booking.end_time > form.start_time.data
+            )
             
+            existing_booking = conflict_query.first()
+            
+            if existing_booking:
+                flash('This hall is already booked at the selected date and time. Please choose another slot.', 'danger')
+                return render_template('booking.html', hall=hall, form=form, settings=settings)
+            
+            # Create new booking
             booking = Booking()
             booking.hall_id = hall.id
             booking.student_name = form.student_name.data
             booking.department = form.department.data
             booking.purpose = form.purpose.data
             booking.booking_date = form.booking_date.data
-            
-            # Mark hall as unavailable
-            hall.is_available = False
+            booking.start_time = form.start_time.data
+            booking.end_time = form.end_time.data
             
             try:
                 db.session.add(booking)
@@ -165,7 +186,7 @@ def book_hall(hall_id):
                 # Send email notification
                 send_booking_notification(booking)
                 
-                flash(f'Hall "{hall.name}" booked successfully!', 'success')
+                flash(f'Hall "{hall.name}" booked successfully for {form.booking_date.data} from {form.start_time.data.strftime("%H:%M")} to {form.end_time.data.strftime("%H:%M")}!', 'success')
                 return redirect(url_for('index'))
             except Exception as e:
                 db.session.rollback()
@@ -178,20 +199,19 @@ def book_hall(hall_id):
                     flash(f'{field}: {error}', 'danger')
     
     form = BookingForm()
-    from datetime import datetime as dt
-    return render_template('booking.html', hall=hall, form=form, settings=settings, now=dt.now())
+    from datetime import date
+    return render_template('booking.html', hall=hall, form=form, settings=settings, today=date.today())
 
 @app.route('/admin/booking/<int:booking_id>/cancel', methods=['POST'])
 def cancel_booking(booking_id):
-    """Cancel a booking and make hall available again"""
+    """Cancel a booking"""
     booking = Booking.query.get_or_404(booking_id)
     hall = booking.hall
     
     try:
         booking.status = 'cancelled'
-        hall.is_available = True
         db.session.commit()
-        flash(f'Booking for "{hall.name}" cancelled successfully!', 'success')
+        flash(f'Booking for "{hall.name}" on {booking.booking_date} cancelled successfully!', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error cancelling booking: {str(e)}', 'danger')
@@ -227,7 +247,8 @@ def send_booking_notification(booking):
         
         # Format the booking date and time
         booking_date = booking.booking_date.strftime('%B %d, %Y')
-        booking_time = booking.booking_date.strftime('%I:%M %p')
+        start_time = booking.start_time.strftime('%I:%M %p')
+        end_time = booking.end_time.strftime('%I:%M %p')
         
         subject = f'Request for Hall Booking – {booking.hall.name}'
         
@@ -235,7 +256,7 @@ def send_booking_notification(booking):
 
 I hope this message finds you well.
 
-I am writing to request the booking of the {booking.hall.name} at {settings.college_name} for our upcoming event scheduled on {booking_date} from {booking_time}.
+I am writing to request the booking of the {booking.hall.name} at {settings.college_name} for our upcoming event scheduled on {booking_date} from {start_time} to {end_time}.
 
 Student Details:
 - Name: {booking.student_name}
@@ -244,7 +265,8 @@ Student Details:
 Event Details:
 - Hall Requested: {booking.hall.name}
 - Date: {booking_date}
-- Time: {booking_time}
+- Time: {start_time} to {end_time}
+- Duration: {((booking.end_time.hour * 60 + booking.end_time.minute) - (booking.start_time.hour * 60 + booking.start_time.minute)) // 60} hours
 - Purpose: {booking.purpose}
 - Hall Capacity: {booking.hall.capacity} people
 - Location: {booking.hall.location}

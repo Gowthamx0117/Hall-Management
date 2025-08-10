@@ -61,10 +61,31 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        {{ form.booking_date.label(class="form-label") }}
-                        {{ form.booking_date(class="form-control") }}
-                        <div class="form-text">Select the date and time for your booking</div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            {{ form.booking_date.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                {{ form.booking_date(class="form-control", min=today.strftime('%Y-%m-%d')) }}
+                            </div>
+                            <div class="form-text">Select booking date</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.start_time.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                                {{ form.start_time(class="form-control") }}
+                            </div>
+                            <div class="form-text">Start time (24-hour format)</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.end_time.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                                {{ form.end_time(class="form-control") }}
+                            </div>
+                            <div class="form-text">End time (24-hour format)</div>
+                        </div>
                     </div>
 
                     <div class="mb-4">
@@ -96,7 +117,7 @@
                 <ul class="list-unstyled mb-0">
                     <li class="mb-2">
                         <i class="fas fa-check text-success me-2"></i>
-                        Bookings must be made at least 2 hours in advance
+                        Minimum booking duration is 1 hour, maximum is 8 hours
                     </li>
                     <li class="mb-2">
                         <i class="fas fa-check text-success me-2"></i>
@@ -106,9 +127,13 @@
                         <i class="fas fa-check text-success me-2"></i>
                         Cancel bookings if plans change to allow others to use the hall
                     </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Bookings cannot be made for past dates
+                    </li>
                     <li class="mb-0">
                         <i class="fas fa-check text-success me-2"></i>
-                        Follow college guidelines and maintain the hall properly
+                        System will check for time conflicts automatically
                     </li>
                 </ul>
             </div>
@@ -122,33 +147,55 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('booking-form');
     const submitBtn = document.getElementById('submit-btn');
+    const startTimeInput = document.querySelector('input[name="start_time"]');
+    const endTimeInput = document.querySelector('input[name="end_time"]');
+    const dateInput = document.querySelector('input[name="booking_date"]');
     
-    // Set minimum date to current time + 2 hours
-    const now = new Date();
-    now.setHours(now.getHours() + 2);
-    const minDateTime = now.toISOString().slice(0, 16);
-    const dateInput = document.querySelector('input[type="datetime-local"]');
-    if (dateInput) {
-        dateInput.setAttribute('min', minDateTime);
+    // Validate time inputs
+    function validateTimes() {
+        if (startTimeInput.value && endTimeInput.value) {
+            const start = new Date(`2000-01-01T${startTimeInput.value}:00`);
+            const end = new Date(`2000-01-01T${endTimeInput.value}:00`);
+            const duration = (end - start) / (1000 * 60); // Duration in minutes
+            
+            // Clear previous custom validity
+            startTimeInput.setCustomValidity('');
+            endTimeInput.setCustomValidity('');
+            
+            if (end <= start) {
+                endTimeInput.setCustomValidity('End time must be after start time');
+                return false;
+            } else if (duration < 60) {
+                endTimeInput.setCustomValidity('Minimum booking duration is 1 hour');
+                return false;
+            } else if (duration > 480) {
+                endTimeInput.setCustomValidity('Maximum booking duration is 8 hours');
+                return false;
+            }
+            return true;
+        }
+        return true;
     }
     
+    // Add event listeners for real-time validation
+    startTimeInput.addEventListener('change', validateTimes);
+    endTimeInput.addEventListener('change', validateTimes);
+    
     form.addEventListener('submit', function(e) {
+        if (!validateTimes()) {
+            e.preventDefault();
+            return false;
+        }
+        
         // Show loading state
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
         submitBtn.disabled = true;
-        
-        // Validate booking date
-        const bookingDate = new Date(form.booking_date.value);
-        const minDate = new Date();
-        minDate.setHours(minDate.getHours() + 2);
-        
-        if (bookingDate <= minDate) {
-            e.preventDefault();
-            alert('Booking must be at least 2 hours in advance.');
-            submitBtn.innerHTML = '<i class="fas fa-check me-1"></i>Confirm Booking';
-            submitBtn.disabled = false;
-            return false;
-        }
+    });
+    
+    // Enable tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 });
 </script>

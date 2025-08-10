@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, IntegerField, DateTimeLocalField, SelectField
-from wtforms.validators import DataRequired, Email, NumberRange, Length
-from wtforms.widgets import TextArea
+from wtforms import StringField, TextAreaField, IntegerField, DateField, TimeField
+from wtforms.validators import DataRequired, NumberRange, Length, ValidationError
+from datetime import date, time
 
 class HallForm(FlaskForm):
     """Form for adding/editing halls"""
@@ -22,7 +22,7 @@ class HallForm(FlaskForm):
     ])
 
 class BookingForm(FlaskForm):
-    """Form for booking halls"""
+    """Form for booking halls with date and time slots"""
     student_name = StringField('Your Name', validators=[
         DataRequired(message='Name is required'),
         Length(min=2, max=100, message='Name must be between 2 and 100 characters')
@@ -35,9 +35,40 @@ class BookingForm(FlaskForm):
         DataRequired(message='Purpose is required'),
         Length(min=10, max=1000, message='Purpose must be between 10 and 1000 characters')
     ])
-    booking_date = DateTimeLocalField('Date & Time', validators=[
-        DataRequired(message='Date and time are required')
+    booking_date = DateField('Booking Date', validators=[
+        DataRequired(message='Booking date is required')
     ])
+    start_time = TimeField('Start Time', validators=[
+        DataRequired(message='Start time is required')
+    ])
+    end_time = TimeField('End Time', validators=[
+        DataRequired(message='End time is required')
+    ])
+    
+    def validate_booking_date(self, field):
+        """Validate that booking date is not in the past"""
+        if field.data < date.today():
+            raise ValidationError('Booking date cannot be in the past')
+    
+    def validate_end_time(self, field):
+        """Validate that end time is after start time"""
+        if self.start_time.data and field.data:
+            if field.data <= self.start_time.data:
+                raise ValidationError('End time must be after start time')
+    
+    def validate_start_time(self, field):
+        """Validate minimum booking duration and working hours"""
+        if field.data and self.end_time.data:
+            # Check for minimum 1 hour duration
+            start_minutes = field.data.hour * 60 + field.data.minute
+            end_minutes = self.end_time.data.hour * 60 + self.end_time.data.minute
+            duration = end_minutes - start_minutes
+            
+            if duration < 60:  # Less than 1 hour
+                raise ValidationError('Minimum booking duration is 1 hour')
+            
+            if duration > 480:  # More than 8 hours
+                raise ValidationError('Maximum booking duration is 8 hours')
 
 class SettingsForm(FlaskForm):
     """Form for application settings"""

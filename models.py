@@ -1,6 +1,6 @@
 from app import db
-from datetime import datetime
-from sqlalchemy import String, Integer, Text, DateTime, Boolean
+from datetime import datetime, date, time
+from sqlalchemy import String, Integer, Text, DateTime, Boolean, Date, Time
 
 class Hall(db.Model):
     """Model for managing college halls"""
@@ -19,13 +19,15 @@ class Hall(db.Model):
         return f'<Hall {self.name}>'
 
 class Booking(db.Model):
-    """Model for managing hall bookings"""
+    """Model for managing hall bookings with date and time slots"""
     id = db.Column(Integer, primary_key=True)
     hall_id = db.Column(Integer, db.ForeignKey('hall.id'), nullable=False)
     student_name = db.Column(String(100), nullable=False)
     department = db.Column(String(100), nullable=False)
     purpose = db.Column(Text, nullable=False)
-    booking_date = db.Column(DateTime, nullable=False)
+    booking_date = db.Column(Date, nullable=False)
+    start_time = db.Column(Time, nullable=False)
+    end_time = db.Column(Time, nullable=False)
     created_at = db.Column(DateTime, default=datetime.utcnow)
     status = db.Column(String(20), default='active', nullable=False)  # active, cancelled
 
