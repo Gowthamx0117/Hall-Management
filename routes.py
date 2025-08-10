@@ -143,9 +143,10 @@ def book_hall(hall_id):
         form = BookingForm()
         if form.validate_on_submit():
             # Check if booking date is in the future
-            if form.booking_date.data and form.booking_date.data <= datetime.now():
+            from datetime import datetime as dt
+            if form.booking_date.data and form.booking_date.data <= dt.now():
                 flash('Booking date must be in the future.', 'danger')
-                return render_template('booking.html', hall=hall, form=form, settings=settings)
+                return render_template('booking.html', hall=hall, form=form, settings=settings, now=dt.now())
             
             booking = Booking()
             booking.hall_id = hall.id
@@ -177,8 +178,8 @@ def book_hall(hall_id):
                     flash(f'{field}: {error}', 'danger')
     
     form = BookingForm()
-    from datetime import datetime
-    return render_template('booking.html', hall=hall, form=form, settings=settings, now=datetime.now())
+    from datetime import datetime as dt
+    return render_template('booking.html', hall=hall, form=form, settings=settings, now=dt.now())
 
 @app.route('/admin/booking/<int:booking_id>/cancel', methods=['POST'])
 def cancel_booking(booking_id):
