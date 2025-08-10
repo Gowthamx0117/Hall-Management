@@ -159,7 +159,13 @@
                                 <td>{{ booking.hall.name }}</td>
                                 <td>{{ booking.department }}</td>
                                 <td>{{ booking.booking_date.strftime('%b %d, %Y') }}</td>
-                                <td>{{ booking.start_time.strftime('%H:%M') }} - {{ booking.end_time.strftime('%H:%M') }}</td>
+                                <td>
+                                    {% if booking.start_time and booking.end_time %}
+                                        {{ booking.start_time.strftime('%H:%M') }} - {{ booking.end_time.strftime('%H:%M') }}
+                                    {% else %}
+                                        <span class="text-muted">Legacy booking</span>
+                                    {% endif %}
+                                </td>
                                 <td>
                                     <span class="badge bg-{{ 'success' if booking.status == 'active' else 'secondary' }}">
                                         {{ booking.status.title() }}
