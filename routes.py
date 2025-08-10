@@ -167,7 +167,8 @@ def book_hall(hall_id):
             
             if existing_booking:
                 flash('This hall is already booked at the selected date and time. Please choose another slot.', 'danger')
-                return render_template('booking.html', hall=hall, form=form, settings=settings)
+                from datetime import date
+                return render_template('booking.html', hall=hall, form=form, settings=settings, today=date.today())
             
             # Create new booking
             booking = Booking()
