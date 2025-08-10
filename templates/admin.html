@@ -107,6 +107,7 @@
                                 </td>
                                 <td>
                                     <form method="POST" action="{{ url_for('delete_hall', hall_id=hall.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this hall?')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -166,6 +167,7 @@
                                 <td>
                                     {% if booking.status == 'active' %}
                                         <form method="POST" action="{{ url_for('cancel_booking', booking_id=booking.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel this booking?')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <button type="submit" class="btn btn-sm btn-outline-warning">
                                                 <i class="fas fa-ban me-1"></i>Cancel
                                             </button>
@@ -195,6 +197,8 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('add_hall') }}">
+                {{ csrf_token() }}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="name" class="form-label">Hall Name</label>

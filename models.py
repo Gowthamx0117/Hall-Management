@@ -30,7 +30,7 @@ class Booking(db.Model):
     status = db.Column(String(20), default='active', nullable=False)  # active, cancelled
 
     def __repr__(self):
-        return f'<Booking {self.student_name} - {self.hall.name}>'
+        return f'<Booking {self.student_name}>'
 
 class Settings(db.Model):
     """Model for storing application settings"""

@@ -73,34 +73,43 @@ def admin():
 def add_hall():
     """Add new hall"""
     if request.method == 'POST':
-        form = HallForm()
-        if form.validate_on_submit():
-            # Check if hall name already exists
-            existing_hall = Hall.query.filter_by(name=form.name.data).first()
-            if existing_hall:
-                flash('A hall with this name already exists!', 'danger')
-                return redirect(url_for('admin'))
+        # Get form data directly from request
+        name = request.form.get('name')
+        capacity = request.form.get('capacity')
+        location = request.form.get('location')
+        description = request.form.get('description')
+        
+        # Basic validation
+        if not name or not capacity or not location:
+            flash('All required fields must be filled!', 'danger')
+            return redirect(url_for('admin'))
+        
+        try:
+            capacity = int(capacity)
+        except ValueError:
+            flash('Capacity must be a valid number!', 'danger')
+            return redirect(url_for('admin'))
+        
+        # Check if hall name already exists
+        existing_hall = Hall.query.filter_by(name=name).first()
+        if existing_hall:
+            flash('A hall with this name already exists!', 'danger')
+            return redirect(url_for('admin'))
+        
+        hall = Hall()
+        hall.name = name
+        hall.capacity = capacity
+        hall.location = location
+        hall.description = description
             
-            hall = Hall(
-                name=form.name.data,
-                capacity=form.capacity.data,
-                location=form.location.data,
-                description=form.description.data
-            )
-            
-            try:
-                db.session.add(hall)
-                db.session.commit()
-                flash(f'Hall "{hall.name}" added successfully!', 'success')
-            except Exception as e:
-                db.session.rollback()
-                flash(f'Error adding hall: {str(e)}', 'danger')
-                logging.error(f'Add hall error: {str(e)}')
-        else:
-            # Show form validation errors
-            for field, errors in form.errors.items():
-                for error in errors:
-                    flash(f'{field}: {error}', 'danger')
+        try:
+            db.session.add(hall)
+            db.session.commit()
+            flash(f'Hall "{hall.name}" added successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error adding hall: {str(e)}', 'danger')
+            logging.error(f'Add hall error: {str(e)}')
     
     return redirect(url_for('admin'))
 
@@ -133,17 +142,16 @@ def book_hall(hall_id):
         form = BookingForm()
         if form.validate_on_submit():
             # Check if booking date is in the future
-            if form.booking_date.data <= datetime.now():
+            if form.booking_date.data and form.booking_date.data <= datetime.now():
                 flash('Booking date must be in the future.', 'danger')
                 return render_template('booking.html', hall=hall, form=form)
             
-            booking = Booking(
-                hall_id=hall.id,
-                student_name=form.student_name.data,
-                department=form.department.data,
-                purpose=form.purpose.data,
-                booking_date=form.booking_date.data
-            )
+            booking = Booking()
+            booking.hall_id = hall.id
+            booking.student_name = form.student_name.data
+            booking.department = form.department.data
+            booking.purpose = form.purpose.data
+            booking.booking_date = form.booking_date.data
             
             # Mark hall as unavailable
             hall.is_available = False
