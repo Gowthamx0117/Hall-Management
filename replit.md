@@ -7,6 +7,7 @@ A Flask-based web application for managing college hall bookings. The system all
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Email notifications: Professional format matching college standards with formal language and complete event details.
 
 ## System Architecture
 

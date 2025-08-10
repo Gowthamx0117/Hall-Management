@@ -225,22 +225,48 @@ def send_booking_notification(booking):
             logging.warning('No admin emails configured for notifications')
             return
         
-        subject = f'New Hall Booking - {booking.hall.name}'
+        # Format the booking date and time
+        booking_date = booking.booking_date.strftime('%B %d, %Y')
+        booking_time = booking.booking_date.strftime('%I:%M %p')
         
-        body = f"""
-        New hall booking received:
+        subject = f'Request for Hall Booking – {booking.hall.name}'
         
-        Hall: {booking.hall.name}
-        Student: {booking.student_name}
-        Department: {booking.department}
-        Purpose: {booking.purpose}
-        Date & Time: {booking.booking_date.strftime('%Y-%m-%d %H:%M')}
-        Booking Time: {booking.created_at.strftime('%Y-%m-%d %H:%M')}
-        
-        Please review the booking in the admin panel.
-        
-        Best regards,
-        {settings.college_name} Hall Management System
+        body = f"""Respected Sir/Madam,
+
+I hope this message finds you well.
+
+I am writing to request the booking of the {booking.hall.name} at {settings.college_name} for our upcoming event scheduled on {booking_date} from {booking_time}.
+
+Student Details:
+- Name: {booking.student_name}
+- Department: {booking.department}
+
+Event Details:
+- Hall Requested: {booking.hall.name}
+- Date: {booking_date}
+- Time: {booking_time}
+- Purpose: {booking.purpose}
+- Hall Capacity: {booking.hall.capacity} people
+- Location: {booking.hall.location}
+
+This booking request was submitted through the Hall Management System on {booking.created_at.strftime('%B %d, %Y at %I:%M %p')}.
+
+The hall's facilities such as projector, sound system, and seating arrangements would be essential for the smooth conduct of the program.
+
+Kindly confirm the availability of the hall for the mentioned date and time. If approved, please let us know the necessary formalities or documents required to proceed with the booking.
+
+Looking forward to your confirmation.
+
+Thank you for your support and cooperation.
+
+Regards,
+{booking.student_name}
+{booking.department}
+Submitted via {settings.college_name} Hall Management System
+
+---
+This is an automated notification from the Hall Management System.
+Please review the booking in the admin panel for further actions.
         """
         
         msg = Message(
@@ -249,11 +275,16 @@ def send_booking_notification(booking):
             body=body
         )
         
-        mail.send(msg)
-        logging.info(f'Booking notification sent for booking ID: {booking.id}')
+        # Try to send email, but don't fail the booking if email fails
+        try:
+            mail.send(msg)
+            logging.info(f'Booking notification sent for booking ID: {booking.id}')
+        except Exception as email_error:
+            logging.error(f'Failed to send email notification: {str(email_error)}')
+            # Don't raise the exception - booking should still succeed
         
     except Exception as e:
-        logging.error(f'Failed to send booking notification: {str(e)}')
+        logging.error(f'Error in send_booking_notification: {str(e)}')
 
 @app.errorhandler(404)
 def not_found_error(error):
