@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Book {{ hall.name }} - {{ settings.college_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- Hall Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-building me-2"></i>{{ hall.name }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2 text-muted"></i>
+                            <strong>Location:</strong> {{ hall.location }}
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-users me-2 text-muted"></i>
+                            <strong>Capacity:</strong> {{ hall.capacity }} people
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        {% if hall.description %}
+                            <p class="mb-2">
+                                <i class="fas fa-info-circle me-2 text-muted"></i>
+                                <strong>Description:</strong> {{ hall.description }}
+                            </p>
+                        {% endif %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-check me-1"></i>Available for Booking
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Form -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calendar-plus me-2"></i>Booking Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="booking-form">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.student_name.label(class="form-label") }}
+                            {{ form.student_name(class="form-control", placeholder="Enter your full name") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.department.label(class="form-label") }}
+                            {{ form.department(class="form-control", placeholder="e.g., Computer Science") }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.booking_date.label(class="form-label") }}
+                        {{ form.booking_date(class="form-control", min=now.strftime('%Y-%m-%dT%H:%M')) }}
+                        <div class="form-text">Select the date and time for your booking</div>
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form.purpose.label(class="form-label") }}
+                        {{ form.purpose(class="form-control", rows="4", placeholder="Please describe the purpose of your booking in detail...") }}
+                        <div class="form-text">Provide a detailed description of your event or activity</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                        </a>
+                        <button type="submit" class="btn btn-success" id="submit-btn">
+                            <i class="fas fa-check me-1"></i>Confirm Booking
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Booking Guidelines -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-exclamation-circle me-2"></i>Booking Guidelines
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Bookings must be made at least 2 hours in advance
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Provide accurate contact information for confirmation
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Cancel bookings if plans change to allow others to use the hall
+                    </li>
+                    <li class="mb-0">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Follow college guidelines and maintain the hall properly
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('booking-form');
+    const submitBtn = document.getElementById('submit-btn');
+    
+    // Set minimum date to current time + 2 hours
+    const now = new Date();
+    now.setHours(now.getHours() + 2);
+    const minDateTime = now.toISOString().slice(0, 16);
+    document.querySelector('input[type="datetime-local"]').setAttribute('min', minDateTime);
+    
+    form.addEventListener('submit', function(e) {
+        // Show loading state
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+        submitBtn.disabled = true;
+        
+        // Validate booking date
+        const bookingDate = new Date(form.booking_date.value);
+        const minDate = new Date();
+        minDate.setHours(minDate.getHours() + 2);
+        
+        if (bookingDate <= minDate) {
+            e.preventDefault();
+            alert('Booking must be at least 2 hours in advance.');
+            submitBtn.innerHTML = '<i class="fas fa-check me-1"></i>Confirm Booking';
+            submitBtn.disabled = false;
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

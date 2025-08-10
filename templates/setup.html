@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Initial Setup - Hall Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-cog me-2"></i>Initial Setup
+                </h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Welcome! Please configure your hall management system to get started.
+                </p>
+
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.college_name.label(class="form-label") }}
+                        {{ form.college_name(class="form-control") }}
+                        <div class="form-text">Enter your college or institution name</div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.college_logo_url.label(class="form-label") }}
+                        {{ form.college_logo_url(class="form-control", placeholder="https://example.com/logo.png") }}
+                        <div class="form-text">Optional: URL to your college logo (will be displayed in navigation)</div>
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form.admin_emails.label(class="form-label") }}
+                        {{ form.admin_emails(class="form-control", rows="3", placeholder="admin@college.edu, principal@college.edu, hod@college.edu") }}
+                        <div class="form-text">Enter email addresses separated by commas. These will receive booking notifications.</div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Complete Setup
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-info-circle me-2"></i>What's Next?
+                </h6>
+                <ul class="list-unstyled mb-0">
+                    <li><i class="fas fa-check text-success me-2"></i>Add halls to your system</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Configure email notifications</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Start managing bookings</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
