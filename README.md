@@ -1,2 +1,13 @@
 # Hall-Management
-📌 Hall Management System  The Hall Management System is a user-friendly web application designed to streamline the process of booking, managing, and organizing halls for events, meetings, and academic purposes. It provides an interactive interface for both administrators and users, enabling efficient scheduling, avoiding booking conflicts, and keeping track of hall usage in real time.  Key Features  🗓 Hall Booking & Scheduling – Easily reserve halls for specific dates and time slots.  ⚡ Conflict Detection – Prevents double-booking through automated availability checks.  🛠 Admin Dashboard – Manage hall details, bookings, and user requests.  📊 Usage Statistics – Track and analyze hall utilization.  🔔 Notifications – Alerts for booking confirmations, cancellations, or changes.  Tech Stack  Frontend: HTML, CSS, JavaScript (Interactive UI)  Backend: Python / Node.js / PHP (based on your actual implementation)  Database: MySQL / SQLite / MongoDB (based on your actual implementation)
+📌 Hall Management System  The Hall Management System is a user-friendly web application designed to streamline the process of booking, managing, and organizing halls for events, meetings, and academic purposes. It provides an interactive interface for both administrators and users, enabling efficient scheduling, avoiding booking conflicts, and keeping track of hall usage in real time.  
+
+Key Features  
+🗓 Hall Booking & Scheduling – Easily reserve halls for specific dates and time slots.  
+⚡ Conflict Detection – Prevents double-booking through automated availability checks.  
+🛠 Admin Dashboard – Manage hall details, bookings, and user requests. 
+📊 Usage Statistics – Track and analyze hall utilization.  
+🔔 Notifications – Alerts for booking confirmations, cancellations, or changes.  
+
+Tech Stack  Frontend: HTML, CSS, JavaScript (Interactive UI)  
+Backend: Python / Node.js / PHP (based on your actual implementation) 
+Database: MySQL / SQLite / MongoDB (based on your actual implementation)
